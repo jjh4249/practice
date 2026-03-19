@@ -113,7 +113,6 @@ scenario_df = pd.DataFrame({
     ]
 })
 
-# 현황 정책 데이터 추가
 current_policy_df = pd.DataFrame({
     "정책명": [
         "수질오염총량관리제",
@@ -136,6 +135,14 @@ current_policy_df = pd.DataFrame({
         "실행 주체 간 협업과 데이터 연계가 아직 제한적",
         "비점오염원·중금속 복합오염 대응에는 한계가 있음"
     ]
+})
+
+# 그래프용 숫자 데이터
+scenario_effect_numeric_df = pd.DataFrame({
+    "시나리오": ["A", "B", "C", "D"],
+    "아토피 피부염 감소율": [0, 0, 8, 8],
+    "소화기 질환 감소율": [15, 0, 0, 15],
+    "내분비계 질환 감소율": [0, 13, 0, 12],
 })
 
 # -----------------------------------
@@ -186,6 +193,71 @@ def make_correlation_bar(df: pd.DataFrame, title: str):
         ),
         height=480,
     )
+    return fig
+
+def make_scenario_effect_bar(df: pd.DataFrame):
+    chart_df = df.melt(
+        id_vars=["시나리오"],
+        value_vars=["아토피 피부염 감소율", "소화기 질환 감소율", "내분비계 질환 감소율"],
+        var_name="질환",
+        value_name="감소율"
+    )
+    fig = px.bar(
+        chart_df,
+        x="시나리오",
+        y="감소율",
+        color="질환",
+        barmode="group",
+        text_auto=".0f",
+        title="시나리오별 질환 기대 감소율 비교"
+    )
+    fig.update_layout(
+        xaxis_title="시나리오",
+        yaxis_title="감소율(%)",
+        legend_title="질환 유형",
+        font=dict(
+            family='-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", '
+                   '"Malgun Gothic", "맑은 고딕", "Noto Sans KR", Arial, sans-serif'
+        ),
+        height=500,
+    )
+    return fig
+
+def make_selected_scenario_pie(selected_scenario: str):
+    row = scenario_effect_numeric_df[scenario_effect_numeric_df["시나리오"] == selected_scenario].iloc[0]
+    pie_df = pd.DataFrame({
+        "질환": ["아토피 피부염", "소화기 질환", "내분비계 질환"],
+        "감소율": [
+            row["아토피 피부염 감소율"],
+            row["소화기 질환 감소율"],
+            row["내분비계 질환 감소율"]
+        ]
+    })
+
+    pie_df = pie_df[pie_df["감소율"] > 0].copy()
+
+    if pie_df.empty:
+        pie_df = pd.DataFrame({
+            "질환": ["기대효과 없음"],
+            "감소율": [1]
+        })
+
+    fig = px.pie(
+        pie_df,
+        names="질환",
+        values="감소율",
+        hole=0.45,
+        title=f"시나리오 {selected_scenario} 기대효과 구성"
+    )
+    fig.update_layout(
+        font=dict(
+            family='-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", '
+                   '"Malgun Gothic", "맑은 고딕", "Noto Sans KR", Arial, sans-serif'
+        ),
+        height=420,
+        legend_title="구성 항목",
+    )
+    fig.update_traces(textinfo="percent+label")
     return fig
 
 # -----------------------------------
@@ -380,6 +452,12 @@ elif page == "정책 시나리오":
         st.markdown("### 오염 저감 시나리오별 기대 효과")
         st.dataframe(scenario_df, use_container_width=True, hide_index=True)
 
+        st.markdown("### 시나리오별 기대효과 시각화")
+        st.plotly_chart(
+            make_scenario_effect_bar(scenario_effect_numeric_df),
+            use_container_width=True
+        )
+
         st.markdown("### 제안 정책 방향")
         st.write(
             """
@@ -399,16 +477,39 @@ elif page == "정책 시나리오":
 
         selected_scenario_row = scenario_df[scenario_df["시나리오"] == selected_scenario].iloc[0]
 
-        st.markdown(
+        col1, col2 = st.columns([1.1, 0.9])
+
+        with col1:
+            st.markdown(
+                f"""
+                <div class="policy-card">
+                <b>선택한 시나리오: {selected_scenario_row['시나리오']}</b><br><br>
+                <b>오염 감소 조건</b>: {selected_scenario_row['오염 감소 조건']}<br>
+                <b>예상 효과</b>: {selected_scenario_row['예상 효과']}<br>
+                <b>주요 수혜 지역</b>: {selected_scenario_row['주요 수혜 지역']}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with col2:
+            st.plotly_chart(
+                make_selected_scenario_pie(selected_scenario),
+                use_container_width=True
+            )
+
+        st.markdown("### 기대효과 해석")
+        effect_row = scenario_effect_numeric_df[
+            scenario_effect_numeric_df["시나리오"] == selected_scenario
+        ].iloc[0]
+
+        st.write(
             f"""
-            <div class="policy-card">
-            <b>선택한 시나리오: {selected_scenario_row['시나리오']}</b><br><br>
-            <b>오염 감소 조건</b>: {selected_scenario_row['오염 감소 조건']}<br>
-            <b>예상 효과</b>: {selected_scenario_row['예상 효과']}<br>
-            <b>주요 수혜 지역</b>: {selected_scenario_row['주요 수혜 지역']}
-            </div>
-            """,
-            unsafe_allow_html=True
+            - **시나리오 {selected_scenario}** 적용 시  
+              아토피 피부염은 **{effect_row['아토피 피부염 감소율']}%**,  
+              소화기 질환은 **{effect_row['소화기 질환 감소율']}%**,  
+              내분비계 질환은 **{effect_row['내분비계 질환 감소율']}%** 감소하는 것으로 가정했다.
+            """
         )
 
     st.markdown("### 실행 포인트")
