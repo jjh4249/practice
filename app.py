@@ -39,6 +39,14 @@ st.markdown(
         border: 1px solid #e5e7eb;
         margin-bottom: 10px;
     }
+
+    .policy-card {
+        padding: 18px;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid #dbe2ea;
+        margin-bottom: 12px;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -46,7 +54,6 @@ st.markdown(
 
 # -----------------------------------
 # Data
-# 보고서 기반 수치 하드코딩
 # -----------------------------------
 water_quality_df = pd.DataFrame({
     "지표": ["BOD", "COD", "DO", "T-N", "T-P", "클로로필-a", "납 Pb", "카드뮴 Cd", "비소 As"],
@@ -103,6 +110,31 @@ scenario_df = pd.DataFrame({
         "낙동강 공단 인근",
         "녹조 다발 지역",
         "전체 유역"
+    ]
+})
+
+# 현황 정책 데이터 추가
+current_policy_df = pd.DataFrame({
+    "정책명": [
+        "수질오염총량관리제",
+        "물환경측정망 운영",
+        "조류경보제",
+        "통합물관리 정책",
+        "배출시설 및 공공하수처리장 관리"
+    ],
+    "핵심 내용": [
+        "유역별 목표수질을 설정하고 오염물질 배출총량을 관리",
+        "하천·호소 수질을 정기적으로 측정하고 수질 변동을 감시",
+        "클로로필-a 등 지표를 기반으로 조류 발생 단계별 경보 발령",
+        "수량·수질·수생태를 유역 단위로 통합 관리",
+        "오염원 배출기준 관리 및 처리시설 운영 효율 개선"
+    ],
+    "한계": [
+        "건강영향 데이터와 직접 연계가 부족함",
+        "실시간 대응보다 사후 모니터링 중심",
+        "사전예방보다 발생 이후 대응 성격이 강함",
+        "실행 주체 간 협업과 데이터 연계가 아직 제한적",
+        "비점오염원·중금속 복합오염 대응에는 한계가 있음"
     ]
 })
 
@@ -262,8 +294,8 @@ elif page == "건강영향":
     st.markdown("### 해석")
     st.write(
         """
-        - 소화기 질환: 낙동강 유역이 북한강보다 약 2.1배 높음
-        - 내분비계 질환: 낙동강 유역이 북한강보다 약 2.2배 높음
+        - 소화기 질환: 낙동강 유역이 북한강보다 약 2.1배 높음  
+        - 내분비계 질환: 낙동강 유역이 북한강보다 약 2.2배 높음  
         - 아토피 피부염: 차이는 있으나 상대적으로 격차는 작음
         """
     )
@@ -293,22 +325,95 @@ elif page == "상관관계":
     st.write(f"**유의성:** {selected_row['유의성']}")
 
 elif page == "정책 시나리오":
-    st.subheader("오염 저감 시나리오별 기대 효과")
-    st.dataframe(scenario_df, use_container_width=True, hide_index=True)
+    st.subheader("현황 정책 및 개선 시나리오")
 
-    st.markdown("### 정책 방향")
-    st.write(
-        """
-        1. 총량관리 항목 확대  
-        2. 수질-건강 통합 모니터링 시스템 구축  
-        3. 조류 사전 예측 모델 도입  
-        4. 낙동강 자동 측정망 보강  
-        5. 중금속 집중관리구역 지정  
-        """
-    )
+    tab1, tab2 = st.tabs(["현황 정책", "개선 시나리오"])
+
+    with tab1:
+        st.markdown("### 현재 시행 중인 주요 정책")
+        st.dataframe(current_policy_df, use_container_width=True, hide_index=True)
+
+        st.markdown("### 정책 해설")
+        st.markdown(
+            """
+            <div class="policy-card">
+            <b>1. 수질오염총량관리제</b><br>
+            유역 단위로 목표수질을 설정하고 오염부하량을 관리하는 제도다.
+            다만 수질 기준 충족 여부 중심이라 건강영향과 직접 연결한 평가는 부족하다.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            """
+            <div class="policy-card">
+            <b>2. 물환경측정망 운영</b><br>
+            정기 측정을 통해 하천과 호소의 수질 변화를 파악하는 데 효과적이다.
+            하지만 실시간 예측과 선제 대응 기능은 상대적으로 약하다.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            """
+            <div class="policy-card">
+            <b>3. 조류경보제</b><br>
+            녹조 발생 시 경보를 발령해 대응을 유도하는 제도다.
+            다만 경보 이전 단계의 예방 관리와 건강위험 조기 차단 측면은 강화가 필요하다.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            """
+            <div class="policy-card">
+            <b>4. 종합 평가</b><br>
+            현재 정책들은 수질 관리 체계 자체는 갖추고 있지만,
+            수질 데이터와 지역 주민 건강 데이터를 통합해 해석하는 구조는 아직 미흡하다.
+            따라서 향후에는 '오염 관리' 중심에서 '건강영향 예방'까지 확장할 필요가 있다.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with tab2:
+        st.markdown("### 오염 저감 시나리오별 기대 효과")
+        st.dataframe(scenario_df, use_container_width=True, hide_index=True)
+
+        st.markdown("### 제안 정책 방향")
+        st.write(
+            """
+            1. 총량관리 항목 확대  
+            2. 수질-건강 통합 모니터링 시스템 구축  
+            3. 조류 사전 예측 모델 도입  
+            4. 낙동강 자동 측정망 보강  
+            5. 중금속 집중관리구역 지정
+            """
+        )
+
+        st.markdown("### 시나리오 해석")
+        selected_scenario = st.selectbox(
+            "시나리오 선택",
+            scenario_df["시나리오"].tolist()
+        )
+
+        selected_scenario_row = scenario_df[scenario_df["시나리오"] == selected_scenario].iloc[0]
+
+        st.markdown(
+            f"""
+            <div class="policy-card">
+            <b>선택한 시나리오: {selected_scenario_row['시나리오']}</b><br><br>
+            <b>오염 감소 조건</b>: {selected_scenario_row['오염 감소 조건']}<br>
+            <b>예상 효과</b>: {selected_scenario_row['예상 효과']}<br>
+            <b>주요 수혜 지역</b>: {selected_scenario_row['주요 수혜 지역']}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     st.markdown("### 실행 포인트")
     st.info(
         "현재 버전은 보고서 요약 시각화용 러프 앱이다. "
-        "다음 단계에서는 CSV 업로드, 필터링, 지도 시각화, 회귀분석 결과 탭을 추가하면 된다."
+        "다음 단계에서는 현황 정책-개선안 비교 차트, 지역별 정책 적용 지도, "
+        "정책 우선순위 평가 기능을 추가하면 더 완성도 있는 대시보드가 된다."
     )
