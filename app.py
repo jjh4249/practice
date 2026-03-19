@@ -205,3 +205,17 @@ elif section == "원문 요약":
 
 st.divider()
 st.caption("Next step: CSV 연동, 지도 추가, 시계열 데이터 추가, 다운로드 리포트 기능 확장")
+
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import platform
+
+# 한글 폰트 설정
+if platform.system() == 'Darwin':  # macOS
+    plt.rc('font', family='AppleGothic')
+elif platform.system() == 'Windows':
+    plt.rc('font', family='Malgun Gothic')
+else:  # Linux (Streamlit Cloud 포함)
+    plt.rc('font', family='NanumGothic')
+
+plt.rcParams['axes.unicode_minus'] = False
